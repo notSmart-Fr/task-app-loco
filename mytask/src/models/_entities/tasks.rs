@@ -10,10 +10,10 @@ pub struct Model {
     pub updated_at: DateTimeWithTimeZone,
     #[sea_orm(primary_key)]
     pub id: i64,
-    pub title: Option<String>,
+    pub title: String,
     #[sea_orm(column_type = "Text", nullable)]
     pub description: Option<String>,
-    pub is_completed: Option<bool>,
+    pub is_completed: bool,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
