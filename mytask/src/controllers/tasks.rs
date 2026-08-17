@@ -14,10 +14,27 @@ pub struct UpdateTaskParams {
     pub description: Option<String>,
     pub is_completed: Option<bool>,
 }
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct TaskQueryParams {
+    pub title: Option<String>,
+    pub is_completed: Option<bool>,
+}
 
-/// GET /tasks - List all tasks
-pub async fn list(State(ctx): State<AppContext>) -> Result<Response> {
-    let tasks = Task::find().all(&ctx.db).await?;
+/// GET /tasks - List all tasks(including optional query parameters for filtering)
+pub async fn list(
+    State(ctx): State<AppContext>,
+    Query(params): Query<TaskQueryParams>,
+) -> Result<Response> {
+    let mut query = Task::find();
+
+    if let Some(title) = params.title {
+        query = query.filter(tasks::Column::Title.contains(&title));
+    }
+    if let Some(is_completed) = params.is_completed {
+        query = query.filter(tasks::Column::IsCompleted.eq(is_completed));
+    }
+
+    let tasks = query.all(&ctx.db).await?;
     format::json(tasks)
 }
 
@@ -86,6 +103,8 @@ pub async fn remove(
     format::empty()
 }
 
+
+/// Define the routes for the tasks controller
 pub fn routes() -> Routes {
     Routes::new()
         .prefix("tasks")
